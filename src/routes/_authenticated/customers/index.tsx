@@ -14,6 +14,8 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { inr, num } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfNumber } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -92,6 +94,66 @@ function CustomersPage() {
           <h2 className="text-2xl font-bold tracking-tight">Customers</h2>
           <p className="text-sm text-muted-foreground">Track buyers, loyalty points and balances.</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <ExportButtons
+          pdfLabel="Customer report PDF"
+          csv={{
+            filename: "customers.csv",
+            rows: () =>
+              filtered.map((c) => ({
+                Name: c.name,
+                Phone: c.phone ?? "",
+                Email: c.email ?? "",
+                LoyaltyPoints: Number(c.loyalty_points),
+                TotalPurchases: Number(c.total_purchases),
+                Outstanding: Number(c.outstanding_balance),
+              })),
+          }}
+          pdf={() => ({
+            filename: "customer-report.pdf",
+            title: "Customer Report",
+            subtitle: `${filtered.length} customers`,
+            stats: [
+              { label: "Customers", value: pdfNumber(filtered.length, 0) },
+              {
+                label: "Lifetime purchases",
+                value: pdfAmount(filtered.reduce((a, c) => a + Number(c.total_purchases), 0)),
+              },
+              {
+                label: "Outstanding",
+                value: pdfAmount(filtered.reduce((a, c) => a + Number(c.outstanding_balance), 0)),
+                hint: "to be collected",
+              },
+              {
+                label: "Loyalty points",
+                value: pdfNumber(filtered.reduce((a, c) => a + Number(c.loyalty_points), 0), 0),
+              },
+            ],
+            tables: [
+              {
+                heading: "Customer directory",
+                head: ["Name", "Phone", "Email", "Purchases", "Points", "Outstanding"],
+                alignRight: [3, 4, 5],
+                rows: filtered.map((c) => [
+                  c.name,
+                  c.phone ?? "—",
+                  c.email ?? "—",
+                  pdfAmount(c.total_purchases),
+                  pdfNumber(c.loyalty_points, 0),
+                  pdfAmount(c.outstanding_balance),
+                ]),
+                empty: "No customers added yet.",
+              },
+            ],
+            totals: [
+              {
+                label: "Total outstanding",
+                value: pdfAmount(filtered.reduce((a, c) => a + Number(c.outstanding_balance), 0)),
+                strong: true,
+              },
+            ],
+          })}
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreate}>
@@ -150,6 +212,7 @@ function CustomersPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-card">

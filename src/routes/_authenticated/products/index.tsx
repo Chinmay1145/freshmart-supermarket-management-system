@@ -16,6 +16,8 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { inr, num, stockStatus, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfNumber } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -150,6 +152,64 @@ function ProductsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Products</h2>
           <p className="text-sm text-muted-foreground">Manage inventory, pricing and stock levels.</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <ExportButtons
+          pdfLabel="Catalogue PDF"
+          csv={{
+            filename: "product-catalogue.csv",
+            rows: () =>
+              filtered.map((p) => ({
+                Product: p.name,
+                SKU: p.sku,
+                Barcode: p.barcode ?? "",
+                Brand: p.brand ?? "",
+                Unit: p.unit,
+                PurchasePrice: Number(p.purchase_price),
+                SellingPrice: Number(p.selling_price),
+                MRP: Number(p.mrp),
+                Tax: Number(p.tax_rate),
+                Stock: Number(p.stock),
+              })),
+          }}
+          pdf={() => ({
+            filename: "product-catalogue.pdf",
+            title: "Product Catalogue & Price List",
+            subtitle: `${filtered.length} products`,
+            stats: [
+              { label: "Products", value: pdfNumber(filtered.length, 0) },
+              {
+                label: "Stock value",
+                value: pdfAmount(filtered.reduce((a, p) => a + Number(p.stock) * Number(p.purchase_price), 0)),
+                hint: "at purchase price",
+              },
+              {
+                label: "Retail value",
+                value: pdfAmount(filtered.reduce((a, p) => a + Number(p.stock) * Number(p.selling_price), 0)),
+                hint: "at selling price",
+              },
+              { label: "Inactive", value: pdfNumber(filtered.filter((p) => !p.is_active).length, 0) },
+            ],
+            tables: [
+              {
+                heading: "Price list",
+                head: ["Product", "SKU", "Unit", "Cost", "Selling", "MRP", "Tax %", "Stock"],
+                alignRight: [3, 4, 5, 6, 7],
+                rows: filtered.map((p) => [
+                  p.name,
+                  p.sku,
+                  p.unit,
+                  pdfAmount(p.purchase_price),
+                  pdfAmount(p.selling_price),
+                  pdfAmount(p.mrp),
+                  pdfNumber(p.tax_rate, 2),
+                  pdfNumber(p.stock),
+                ]),
+                empty: "No products added yet.",
+              },
+            ],
+            closingNote: "Prices include applicable taxes unless stated otherwise.",
+          })}
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreate}>
@@ -274,6 +334,7 @@ function ProductsPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-card">

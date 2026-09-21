@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, FileText } from "lucide-react";
 import { inr, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfNumber } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Purchase = Database["public"]["Tables"]["purchases"]["Row"];
@@ -37,9 +39,72 @@ function PurchasesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Purchases</h2>
           <p className="text-sm text-muted-foreground">Track orders from suppliers.</p>
         </div>
-        <Button asChild>
-          <Link to="/purchases/new"><Plus className="mr-2 h-4 w-4" />New purchase</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons
+            pdfLabel="Purchase report PDF"
+            csv={{
+              filename: "purchase-register.csv",
+              rows: () =>
+                filtered.map((p) => ({
+                  Purchase: p.purchase_number,
+                  Supplier: p.supplier_name ?? "",
+                  Date: p.purchase_date,
+                  Status: p.status,
+                  Payment: p.payment_status,
+                  Total: Number(p.total),
+                })),
+            }}
+            pdf={() => ({
+              filename: "purchase-register.pdf",
+              title: "Purchase Register",
+              subtitle: `${filtered.length} purchase orders`,
+              stats: [
+                { label: "Orders", value: pdfNumber(filtered.length, 0) },
+                { label: "Order value", value: pdfAmount(filtered.reduce((a, p) => a + Number(p.total), 0)) },
+                {
+                  label: "Unpaid",
+                  value: pdfAmount(
+                    filtered.filter((p) => p.payment_status !== "paid").reduce((a, p) => a + Number(p.total), 0),
+                  ),
+                  hint: "awaiting settlement",
+                },
+                {
+                  label: "Pending receipt",
+                  value: pdfNumber(filtered.filter((p) => p.status !== "received").length, 0),
+                  hint: "orders not received",
+                },
+              ],
+              tables: [
+                {
+                  heading: "Purchase orders",
+                  head: ["Purchase #", "Supplier", "Date", "Status", "Payment", "Total"],
+                  alignRight: [5],
+                  rows: filtered.map((p) => [
+                    p.purchase_number,
+                    p.supplier_name ?? "—",
+                    shortDate(p.purchase_date),
+                    titleCase(p.status),
+                    titleCase(p.payment_status),
+                    pdfAmount(p.total),
+                  ]),
+                  empty: "No purchase orders recorded yet.",
+                },
+              ],
+              totals: [
+                { label: "Subtotal", value: pdfAmount(filtered.reduce((a, p) => a + Number(p.subtotal), 0)) },
+                { label: "Tax", value: pdfAmount(filtered.reduce((a, p) => a + Number(p.tax_amount), 0)) },
+                {
+                  label: "Total ordered",
+                  value: pdfAmount(filtered.reduce((a, p) => a + Number(p.total), 0)),
+                  strong: true,
+                },
+              ],
+            })}
+          />
+          <Button asChild>
+            <Link to="/purchases/new"><Plus className="mr-2 h-4 w-4" />New purchase</Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="shadow-card">
