@@ -14,6 +14,8 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { inr } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Supplier = Database["public"]["Tables"]["suppliers"]["Row"];
@@ -94,6 +96,64 @@ function SuppliersPage() {
           <h2 className="text-2xl font-bold tracking-tight">Suppliers</h2>
           <p className="text-sm text-muted-foreground">Manage vendors and outstanding balances.</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <ExportButtons
+          pdfLabel="Supplier report PDF"
+          csv={{
+            filename: "suppliers.csv",
+            rows: () =>
+              filtered.map((s) => ({
+                Name: s.name,
+                Company: s.company ?? "",
+                Phone: s.phone ?? "",
+                Email: s.email ?? "",
+                GST: s.gst_number ?? "",
+                Terms: s.payment_terms ?? "",
+                Outstanding: Number(s.outstanding_amount),
+              })),
+          }}
+          pdf={() => ({
+            filename: "supplier-report.pdf",
+            title: "Supplier Report",
+            subtitle: `${filtered.length} suppliers`,
+            stats: [
+              { label: "Suppliers", value: String(filtered.length) },
+              {
+                label: "Payable",
+                value: pdfAmount(filtered.reduce((a, s) => a + Number(s.outstanding_amount), 0)),
+                hint: "outstanding to vendors",
+              },
+              {
+                label: "With dues",
+                value: String(filtered.filter((s) => Number(s.outstanding_amount) > 0).length),
+              },
+              { label: "Inactive", value: String(filtered.filter((s) => !s.is_active).length) },
+            ],
+            tables: [
+              {
+                heading: "Supplier directory",
+                head: ["Name", "Company", "Phone", "GSTIN", "Terms", "Outstanding"],
+                alignRight: [5],
+                rows: filtered.map((s) => [
+                  s.name,
+                  s.company ?? "—",
+                  s.phone ?? "—",
+                  s.gst_number ?? "—",
+                  s.payment_terms ?? "—",
+                  pdfAmount(s.outstanding_amount),
+                ]),
+                empty: "No suppliers added yet.",
+              },
+            ],
+            totals: [
+              {
+                label: "Total payable",
+                value: pdfAmount(filtered.reduce((a, s) => a + Number(s.outstanding_amount), 0)),
+                strong: true,
+              },
+            ],
+          })}
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreate}>
@@ -168,6 +228,7 @@ function SuppliersPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-card">
