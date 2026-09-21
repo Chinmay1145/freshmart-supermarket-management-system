@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search } from "lucide-react";
 import { inr, num, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfNumber } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Sale = Database["public"]["Tables"]["sales"]["Row"];
@@ -37,12 +39,71 @@ function SalesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Sales</h2>
           <p className="text-sm text-muted-foreground">Recent invoices and transactions.</p>
         </div>
-        <Button asChild>
-          <Link to="/sales/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New sale
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButtons
+            pdfLabel="Sales register PDF"
+            csv={{
+              filename: "sales-register.csv",
+              rows: () =>
+                filtered.map((s) => ({
+                  Invoice: s.invoice_number,
+                  Date: shortDate(s.created_at),
+                  Customer: s.customer_name ?? "Walk-in",
+                  Payment: s.payment_method,
+                  Status: s.status,
+                  Subtotal: Number(s.subtotal),
+                  Tax: Number(s.tax_amount),
+                  Total: Number(s.total),
+                })),
+            }}
+            pdf={() => ({
+              filename: "sales-register.pdf",
+              title: "Sales Register",
+              subtitle: `${filtered.length} invoices listed`,
+              stats: [
+                { label: "Invoices", value: pdfNumber(filtered.length, 0) },
+                { label: "Revenue", value: pdfAmount(filtered.reduce((a, s) => a + Number(s.total), 0)) },
+                { label: "Tax collected", value: pdfAmount(filtered.reduce((a, s) => a + Number(s.tax_amount), 0)) },
+                {
+                  label: "Discounts given",
+                  value: pdfAmount(filtered.reduce((a, s) => a + Number(s.discount_amount), 0)),
+                },
+              ],
+              tables: [
+                {
+                  heading: "Invoices",
+                  head: ["Invoice", "Date", "Customer", "Payment", "Status", "Tax", "Total"],
+                  alignRight: [5, 6],
+                  rows: filtered.map((s) => [
+                    s.invoice_number,
+                    shortDate(s.created_at),
+                    s.customer_name ?? "Walk-in",
+                    titleCase(s.payment_method),
+                    titleCase(s.status),
+                    pdfAmount(s.tax_amount),
+                    pdfAmount(s.total),
+                  ]),
+                  empty: "No invoices recorded yet.",
+                },
+              ],
+              totals: [
+                { label: "Subtotal", value: pdfAmount(filtered.reduce((a, s) => a + Number(s.subtotal), 0)) },
+                { label: "Tax", value: pdfAmount(filtered.reduce((a, s) => a + Number(s.tax_amount), 0)) },
+                {
+                  label: "Grand total",
+                  value: pdfAmount(filtered.reduce((a, s) => a + Number(s.total), 0)),
+                  strong: true,
+                },
+              ],
+            })}
+          />
+          <Button asChild>
+            <Link to="/sales/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New sale
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="shadow-card">
