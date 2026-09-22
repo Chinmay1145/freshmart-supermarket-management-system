@@ -13,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { inr, num, shortDate } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Discount = Database["public"]["Tables"]["discounts"]["Row"];
@@ -116,9 +118,55 @@ function DiscountsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Discounts & offers</h2>
           <p className="text-sm text-muted-foreground">Set up coupon codes and store-wide offers for billing.</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Add discount
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons
+            csv={{
+              filename: "offers.csv",
+              rows: () =>
+                filtered.map((d) => ({
+                  Name: d.name,
+                  Code: d.code ?? "",
+                  Type: typeLabels[d.discount_type],
+                  Value: Number(d.value ?? 0),
+                  Start: d.start_date,
+                  End: d.end_date ?? "",
+                  Used: Number(d.used_count ?? 0),
+                  Status: isLive(d) ? "Running" : "Not running",
+                })),
+            }}
+            pdf={() => ({
+              filename: "offers-report.pdf",
+              title: "Discounts & Offers",
+              subtitle: `${filtered.length} offer${filtered.length === 1 ? "" : "s"}`,
+              stats: [
+                { label: "Total offers", value: String((discounts ?? []).length) },
+                { label: "Running now", value: String((discounts ?? []).filter(isLive).length) },
+                { label: "Times used", value: num((discounts ?? []).reduce((s, d) => s + Number(d.used_count ?? 0), 0)) },
+              ],
+              tables: [
+                {
+                  heading: "Offers",
+                  head: ["Name", "Code", "Type", "Value", "Starts", "Ends", "Used", "Status"],
+                  alignRight: [3, 6],
+                  rows: filtered.map((d) => [
+                    d.name,
+                    d.code ?? "—",
+                    typeLabels[d.discount_type],
+                    showValue(d),
+                    pdfDate(d.start_date),
+                    d.end_date ? pdfDate(d.end_date) : "No end date",
+                    num(d.used_count ?? 0),
+                    isLive(d) ? "Running" : "Not running",
+                  ]),
+                  empty: "No offers created.",
+                },
+              ],
+            })}
+          />
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Add discount
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
