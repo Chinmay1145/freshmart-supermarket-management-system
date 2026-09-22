@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { inr, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type ReturnRow = Database["public"]["Tables"]["returns"]["Row"];
@@ -105,9 +107,60 @@ function ReturnsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Returns & refunds</h2>
           <p className="text-sm text-muted-foreground">Log returned goods and keep refunds accountable.</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> New return
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons
+            csv={{
+              filename: "returns.csv",
+              rows: () =>
+                filtered.map((r) => ({
+                  Return: r.return_number,
+                  Date: r.created_at,
+                  Invoice: r.invoice_number ?? "",
+                  Customer: r.customer_name ?? "Walk-in",
+                  Reason: r.reason ?? "",
+                  Status: r.status,
+                  Refund: Number(r.refund_amount ?? 0),
+                })),
+            }}
+            pdf={() => ({
+              filename: "returns-report.pdf",
+              title: "Returns & Refunds",
+              subtitle: `${filtered.length} return${filtered.length === 1 ? "" : "s"}`,
+              stats: [
+                { label: "Total returns", value: String((returns ?? []).length) },
+                { label: "Awaiting action", value: String((returns ?? []).filter((r) => r.status === "requested").length) },
+                { label: "Refunded", value: pdfAmount(refunded) },
+              ],
+              tables: [
+                {
+                  heading: "Returns",
+                  head: ["Return no.", "Date", "Invoice", "Customer", "Reason", "Status", "Refund"],
+                  alignRight: [6],
+                  rows: filtered.map((r) => [
+                    r.return_number,
+                    pdfDate(r.created_at),
+                    r.invoice_number ?? "—",
+                    r.customer_name ?? "Walk-in",
+                    r.reason ?? "—",
+                    titleCase(r.status),
+                    pdfAmount(r.refund_amount),
+                  ]),
+                  empty: "No returns recorded.",
+                },
+              ],
+              totals: [
+                {
+                  label: "Listed refunds",
+                  value: pdfAmount(filtered.reduce((s, r) => s + Number(r.refund_amount ?? 0), 0)),
+                  strong: true,
+                },
+              ],
+            })}
+          />
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> New return
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

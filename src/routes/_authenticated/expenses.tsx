@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Trash2, Download } from "lucide-react";
-import { inr, shortDate, titleCase, downloadCsv } from "@/lib/format";
+import { Plus, Search, Trash2 } from "lucide-react";
+import { inr, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
@@ -97,26 +99,51 @@ function ExpensesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Expenses</h2>
           <p className="text-sm text-muted-foreground">Track every rupee that leaves the store.</p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() =>
-              downloadCsv(
-                "expenses.csv",
-                (expenses ?? []).map((e) => ({
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons
+            csv={{
+              filename: "expenses.csv",
+              rows: () =>
+                rows.map((e) => ({
                   Date: e.expense_date,
                   Title: e.title,
                   Category: e.category,
                   Method: e.payment_method,
                   Amount: Number(e.amount),
                 })),
-              )
-            }
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+            }}
+            pdf={() => ({
+              filename: "expense-report.pdf",
+              title: "Expense Report",
+              subtitle: `${rows.length} expense${rows.length === 1 ? "" : "s"}`,
+              stats: [
+                { label: "This month", value: pdfAmount(monthTotal) },
+                { label: "All time", value: pdfAmount(allTotal) },
+                { label: "Entries", value: String(rows.length) },
+                { label: "Top category", value: topCategory ? topCategory[0] : "—" },
+              ],
+              tables: [
+                {
+                  heading: "Expenses",
+                  head: ["Date", "Title", "Category", "Paid by", "Amount"],
+                  alignRight: [4],
+                  rows: rows.map((e) => [
+                    pdfDate(e.expense_date),
+                    e.title,
+                    e.category,
+                    titleCase(e.payment_method),
+                    pdfAmount(e.amount),
+                  ]),
+                  empty: "No expenses recorded.",
+                },
+              ],
+              totals: [
+                { label: "Listed expenses", value: pdfAmount(rows.reduce((s, e) => s + Number(e.amount), 0)), strong: true },
+              ],
+            })}
+          />
           <Dialog open={open} onOpenChange={setOpen}>
+
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />

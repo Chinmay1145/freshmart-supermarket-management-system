@@ -13,6 +13,7 @@ import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ExportButtons } from "@/components/export-buttons";
 import type { Database } from "@/integrations/supabase/types";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -80,6 +81,31 @@ function CategoriesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
           <p className="text-sm text-muted-foreground">Organise products into categories.</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        <ExportButtons
+          csv={{
+            filename: "categories.csv",
+            rows: () =>
+              filtered.map((c) => ({
+                Name: c.name,
+                Description: c.description ?? "",
+                Status: c.is_active ? "Active" : "Inactive",
+              })),
+          }}
+          pdf={() => ({
+            filename: "categories.pdf",
+            title: "Product Categories",
+            subtitle: `${filtered.length} categor${filtered.length === 1 ? "y" : "ies"}`,
+            tables: [
+              {
+                heading: "Categories",
+                head: ["Name", "Description", "Status"],
+                rows: filtered.map((c) => [c.name, c.description ?? "—", c.is_active ? "Active" : "Inactive"]),
+                empty: "No categories created.",
+              },
+            ],
+          })}
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreate}>
@@ -115,6 +141,7 @@ function CategoriesPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-card">

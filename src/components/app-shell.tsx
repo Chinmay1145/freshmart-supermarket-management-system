@@ -1,5 +1,4 @@
-import {
-  History, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,11 @@ import {
   Wallet,
   Settings,
   UserCircle,
+  Undo2,
+  Percent,
+  IdCard,
+  Bell,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

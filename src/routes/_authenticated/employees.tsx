@@ -13,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { inr, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Employee = Database["public"]["Tables"]["employees"]["Row"];
@@ -105,9 +107,66 @@ function EmployeesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Employees</h2>
           <p className="text-sm text-muted-foreground">Staff records, roles, departments and salaries.</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Add employee
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons
+            csv={{
+              filename: "employees.csv",
+              rows: () =>
+                filtered.map((e) => ({
+                  Code: e.employee_code,
+                  Name: e.name,
+                  Role: e.role,
+                  Department: e.department ?? "",
+                  Phone: e.phone ?? "",
+                  Email: e.email ?? "",
+                  Joined: e.joining_date,
+                  Salary: Number(e.salary ?? 0),
+                  Status: e.is_active ? "Active" : "Inactive",
+                })),
+            }}
+            pdf={() => ({
+              filename: "staff-report.pdf",
+              title: "Staff Report",
+              subtitle: `${filtered.length} employee${filtered.length === 1 ? "" : "s"}`,
+              stats: [
+                { label: "Total staff", value: String((employees ?? []).length) },
+                { label: "Active", value: String((employees ?? []).filter((e) => e.is_active).length) },
+                {
+                  label: "Monthly payroll",
+                  value: pdfAmount((employees ?? []).filter((e) => e.is_active).reduce((s, e) => s + Number(e.salary ?? 0), 0)),
+                },
+              ],
+              tables: [
+                {
+                  heading: "Employees",
+                  head: ["Code", "Name", "Role", "Department", "Phone", "Joined", "Salary", "Status"],
+                  alignRight: [6],
+                  rows: filtered.map((e) => [
+                    e.employee_code,
+                    e.name,
+                    titleCase(e.role),
+                    e.department ?? "—",
+                    e.phone ?? "—",
+                    pdfDate(e.joining_date),
+                    pdfAmount(e.salary),
+                    e.is_active ? "Active" : "Inactive",
+                  ]),
+                  empty: "No staff records.",
+                },
+              ],
+              totals: [
+                {
+                  label: "Listed salaries",
+                  value: pdfAmount(filtered.reduce((s, e) => s + Number(e.salary ?? 0), 0)),
+                  strong: true,
+                },
+              ],
+            })}
+          />
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Add employee
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

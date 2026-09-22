@@ -86,32 +86,52 @@ function SaleDetailPage() {
   const exportPdf = () =>
     downloadPdf({
       filename: `${sale.invoice_number}.pdf`,
-      title: `Invoice ${sale.invoice_number}`,
-      subtitle: `${sale.customer_name ?? "Walk-in"} · ${dateTime(sale.created_at)}`,
+      title: `Tax Invoice ${sale.invoice_number}`,
+      subtitle: `${sale.customer_name ?? "Walk-in customer"}`,
       storeName: settings?.store_name ?? "FreshMart Supermarket",
-      stats: [
-        { label: "Total", value: pdfAmount(sale.total) },
-        { label: "Paid", value: pdfAmount(sale.amount_paid), hint: titleCase(sale.payment_method) },
-        { label: "Change", value: pdfAmount(sale.change_due) },
-        { label: "Items", value: pdfNumber(lines.length, 0) },
+      storeMeta: [
+        settings?.address,
+        [settings?.phone, settings?.email].filter(Boolean).join("  ·  ") || null,
+        settings?.gst_number ? `GSTIN ${settings.gst_number}` : null,
+      ],
+      meta: [
+        { label: "Invoice no.", value: sale.invoice_number },
+        { label: "Date", value: dateTime(sale.created_at) },
+        { label: "Customer", value: sale.customer_name ?? "Walk-in" },
+        { label: "Billed by", value: sale.cashier_name ?? "—" },
+        { label: "Payment", value: titleCase(sale.payment_method) },
+        { label: "Status", value: titleCase(sale.status) },
       ],
       tables: [
         {
           heading: "Items",
-          head: ["Product", "SKU", "Qty", "Price", "Tax %", "Total"],
-          alignRight: [2, 3, 4, 5],
+          subheading: `${lines.length} line item${lines.length === 1 ? "" : "s"}`,
+          head: ["Product", "SKU", "Qty", "Price", "Discount", "Tax %", "Total"],
+          alignRight: [2, 3, 4, 5, 6],
           rows: lines.map((l) => [
             l.product_name,
             l.sku ?? "—",
             pdfNumber(l.quantity, 2),
             pdfAmount(l.unit_price),
+            pdfAmount(l.discount),
             pdfNumber(l.tax_rate, 2),
             pdfAmount(l.total),
           ]),
           empty: "No items on this invoice.",
         },
       ],
+      totals: [
+        { label: "Subtotal", value: pdfAmount(sale.subtotal) },
+        { label: "Discount", value: `- ${pdfAmount(sale.discount_amount)}` },
+        { label: "Tax", value: pdfAmount(sale.tax_amount) },
+        { label: "Grand total", value: pdfAmount(sale.total), strong: true },
+        { label: "Amount paid", value: pdfAmount(sale.amount_paid) },
+        { label: "Change due", value: pdfAmount(sale.change_due) },
+      ],
+      notes: [sale.notes],
+      closingNote: "Thank you for shopping with us.",
     });
+
 
   return (
     <div className="space-y-4">
