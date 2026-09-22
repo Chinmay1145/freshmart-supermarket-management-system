@@ -141,6 +141,7 @@ function CategoriesPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card className="shadow-card">

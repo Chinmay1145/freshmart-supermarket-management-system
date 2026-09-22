@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search } from "lucide-react";
 import { shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type AuditLog = Database["public"]["Tables"]["audit_logs"]["Row"];
@@ -42,9 +44,45 @@ function ActivityPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Activity Log</h2>
-        <p className="text-sm text-muted-foreground">Everything your team has recorded, newest first.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Activity Log</h2>
+          <p className="text-sm text-muted-foreground">Everything your team has recorded, newest first.</p>
+        </div>
+        <ExportButtons
+          csv={{
+            filename: "activity-log.csv",
+            rows: () =>
+              filtered.map((l) => ({
+                When: l.created_at,
+                User: l.user_email ?? "system",
+                Action: l.action,
+                Area: l.module,
+                Record: l.entity ?? "",
+                Details: l.details ?? "",
+              })),
+          }}
+          pdf={() => ({
+            filename: "activity-log.pdf",
+            title: "Activity Log",
+            subtitle: `${filtered.length} entr${filtered.length === 1 ? "y" : "ies"}`,
+            tables: [
+              {
+                heading: "Recorded activity",
+                head: ["When", "User", "Action", "Area", "Record", "Details"],
+                rows: filtered.map((l) => [
+                  pdfDate(l.created_at),
+                  l.user_email ?? "system",
+                  titleCase(l.action),
+                  l.module,
+                  l.entity ?? "—",
+                  l.details ?? "—",
+                ]),
+                empty: "No activity recorded yet.",
+              },
+            ],
+          })}
+        />
       </div>
 
       <Card className="shadow-card">
