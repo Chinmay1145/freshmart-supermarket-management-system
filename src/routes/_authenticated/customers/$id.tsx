@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Receipt } from "lucide-react";
 import { inr, num, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
