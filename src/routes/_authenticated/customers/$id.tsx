@@ -81,7 +81,7 @@ function CustomerDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         <Button variant="ghost" size="icon" asChild aria-label="Back to customers">
           <Link to="/customers"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
@@ -96,6 +96,61 @@ function CustomerDetailPage() {
             {customer.phone || "No phone"} · {customer.email || "No email"}
           </p>
         </div>
+        <ExportButtons
+          className="ml-auto"
+          pdfLabel="Statement PDF"
+          csv={{
+            filename: `${customer.name.replace(/\s+/g, "-").toLowerCase()}-purchases.csv`,
+            rows: () =>
+              list.map((s) => ({
+                Invoice: s.invoice_number,
+                Date: shortDate(s.created_at),
+                Payment: titleCase(s.payment_method),
+                Status: titleCase(s.status),
+                Total: Number(s.total),
+              })),
+          }}
+          pdf={() => ({
+            filename: `statement-${customer.name.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+            title: "Customer Statement",
+            subtitle: customer.name,
+            meta: [
+              { label: "Customer", value: customer.name },
+              { label: "Phone", value: customer.phone || "—" },
+              { label: "Email", value: customer.email || "—" },
+              { label: "Address", value: customer.address || "—" },
+              { label: "Customer since", value: pdfDate(customer.created_at) },
+              { label: "Last purchase", value: pdfDate(customer.last_purchase_at) },
+            ],
+            stats: [
+              { label: "Total spent", value: pdfAmount(spent) },
+              { label: "Invoices", value: String(list.length) },
+              { label: "Average bill", value: pdfAmount(average) },
+              { label: "Outstanding", value: pdfAmount(customer.outstanding_balance) },
+            ],
+            tables: [
+              {
+                heading: "Purchase history",
+                head: ["Invoice", "Date", "Payment", "Status", "Total"],
+                alignRight: [4],
+                rows: list.map((s) => [
+                  s.invoice_number,
+                  pdfDate(s.created_at),
+                  titleCase(s.payment_method),
+                  titleCase(s.status),
+                  pdfAmount(s.total),
+                ]),
+                empty: "No purchases recorded for this customer yet.",
+              },
+            ],
+            totals: [
+              { label: "Lifetime purchases", value: pdfAmount(spent) },
+              { label: "Loyalty points", value: String(customer.loyalty_points) },
+              { label: "Outstanding balance", value: pdfAmount(customer.outstanding_balance), strong: true },
+            ],
+            closingNote: "Thank you for shopping with us.",
+          })}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
