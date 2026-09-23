@@ -228,7 +228,7 @@ export function buildPdf(spec: PdfDocSpec) {
       columnStyles,
       didDrawPage: (data) => {
         // Repeat the branded header on pages the table spills onto.
-        if (data.pageNumber > 1 && data.cursor && data.settings.startY === data.settings.margin.top) drawHeader();
+        if (data.pageNumber > 1) drawHeader();
       },
     });
     y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y) + 24;

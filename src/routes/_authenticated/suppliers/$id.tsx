@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, FileText } from "lucide-react";
 import { inr, num, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Supplier = Database["public"]["Tables"]["suppliers"]["Row"];
@@ -88,7 +90,7 @@ function SupplierDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         <Button variant="ghost" size="icon" asChild aria-label="Back to suppliers">
           <Link to="/suppliers"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
@@ -103,6 +105,59 @@ function SupplierDetailPage() {
             {supplier.company || "No company"} · {supplier.phone || "No phone"}
           </p>
         </div>
+        <ExportButtons
+          className="ml-auto"
+          pdfLabel="Statement PDF"
+          csv={{
+            filename: `${supplier.name.replace(/\s+/g, "-").toLowerCase()}-orders.csv`,
+            rows: () =>
+              list.map((p) => ({
+                Purchase: p.purchase_number,
+                Date: shortDate(p.purchase_date),
+                Status: titleCase(p.status),
+                Payment: titleCase(p.payment_status),
+                Total: Number(p.total),
+              })),
+          }}
+          pdf={() => ({
+            filename: `statement-${supplier.name.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+            title: "Supplier Statement",
+            subtitle: supplier.company || supplier.name,
+            meta: [
+              { label: "Supplier", value: supplier.name },
+              { label: "Company", value: supplier.company || "—" },
+              { label: "Phone", value: supplier.phone || "—" },
+              { label: "Email", value: supplier.email || "—" },
+              { label: "GSTIN", value: supplier.gst_number || "—" },
+              { label: "Payment terms", value: supplier.payment_terms || "—" },
+            ],
+            stats: [
+              { label: "Total purchased", value: pdfAmount(purchased) },
+              { label: "Orders", value: String(list.length) },
+              { label: "Products supplied", value: String((products ?? []).length) },
+              { label: "Outstanding", value: pdfAmount(supplier.outstanding_amount) },
+            ],
+            tables: [
+              {
+                heading: "Purchase orders",
+                head: ["Purchase #", "Date", "Status", "Payment", "Total"],
+                alignRight: [4],
+                rows: list.map((p) => [
+                  p.purchase_number,
+                  pdfDate(p.purchase_date),
+                  titleCase(p.status),
+                  titleCase(p.payment_status),
+                  pdfAmount(p.total),
+                ]),
+                empty: "No purchase orders recorded for this supplier yet.",
+              },
+            ],
+            totals: [
+              { label: "Total purchased", value: pdfAmount(purchased) },
+              { label: "Outstanding payable", value: pdfAmount(supplier.outstanding_amount), strong: true },
+            ],
+          })}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

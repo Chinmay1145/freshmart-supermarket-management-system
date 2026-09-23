@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft } from "lucide-react";
 import { inr, num, shortDate, titleCase } from "@/lib/format";
+import { ExportButtons } from "@/components/export-buttons";
+import { pdfAmount, pdfNumber, pdfDate } from "@/lib/pdf";
 import type { Database } from "@/integrations/supabase/types";
 
 type Purchase = Database["public"]["Tables"]["purchases"]["Row"];
@@ -74,7 +76,7 @@ function PurchaseDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         <Button variant="ghost" size="icon" asChild aria-label="Back to purchases">
           <Link to="/purchases"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
@@ -93,6 +95,54 @@ function PurchaseDetailPage() {
             {purchase.supplier_name ?? "No supplier"} · {shortDate(purchase.purchase_date)}
           </p>
         </div>
+        <ExportButtons
+          className="ml-auto"
+          pdfLabel="Purchase order PDF"
+          csv={{
+            filename: `${purchase.purchase_number}-items.csv`,
+            rows: () =>
+              list.map((i) => ({
+                Product: i.product_name,
+                Quantity: Number(i.quantity),
+                UnitCost: Number(i.unit_cost),
+                Amount: Number(i.total),
+              })),
+          }}
+          pdf={() => ({
+            filename: `${purchase.purchase_number}.pdf`,
+            title: "Purchase Order",
+            subtitle: purchase.purchase_number,
+            meta: [
+              { label: "Supplier", value: purchase.supplier_name ?? "—" },
+              { label: "Supplier invoice", value: purchase.invoice_number ?? "—" },
+              { label: "Purchase date", value: pdfDate(purchase.purchase_date) },
+              { label: "Status", value: titleCase(purchase.status) },
+              { label: "Payment", value: titleCase(purchase.payment_status) },
+              { label: "Created", value: pdfDate(purchase.created_at) },
+            ],
+            tables: [
+              {
+                heading: "Items ordered",
+                head: ["Product", "Qty", "Unit cost", "Amount"],
+                alignRight: [1, 2, 3],
+                rows: list.map((i) => [
+                  i.product_name,
+                  pdfNumber(i.quantity, 2),
+                  pdfAmount(i.unit_cost),
+                  pdfAmount(i.total),
+                ]),
+                empty: "No items on this order.",
+              },
+            ],
+            totals: [
+              { label: "Subtotal", value: pdfAmount(purchase.subtotal) },
+              { label: "Tax", value: pdfAmount(purchase.tax_amount) },
+              { label: "Discount", value: `- ${pdfAmount(purchase.discount_amount)}` },
+              { label: "Order total", value: pdfAmount(purchase.total), strong: true },
+            ],
+            notes: [purchase.notes],
+          })}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
