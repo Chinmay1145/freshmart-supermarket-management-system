@@ -15,11 +15,14 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CustomerStoriesRouteImport } from './routes/customer-stories'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -78,6 +81,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomerStoriesRoute = CustomerStoriesRouteImport.update({
+  id: '/customer-stories',
+  path: '/customer-stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -86,6 +94,11 @@ const FaqRoute = FaqRouteImport.update({
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationsRoute = IntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -101,6 +114,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -260,11 +278,14 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/customer-stories': typeof CustomerStoriesRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/integrations': typeof IntegrationsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/terms': typeof TermsRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -300,11 +321,14 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/customer-stories': typeof CustomerStoriesRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/integrations': typeof IntegrationsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/terms': typeof TermsRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -342,11 +366,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/customer-stories': typeof CustomerStoriesRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/integrations': typeof IntegrationsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/security': typeof SecurityRoute
   '/terms': typeof TermsRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -384,11 +411,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/customer-stories'
     | '/faq'
     | '/features'
+    | '/integrations'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/terms'
     | '/activity'
     | '/dashboard'
@@ -424,11 +454,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/customer-stories'
     | '/faq'
     | '/features'
+    | '/integrations'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/terms'
     | '/activity'
     | '/dashboard'
@@ -465,11 +498,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/customer-stories'
     | '/faq'
     | '/features'
+    | '/integrations'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
+    | '/security'
     | '/terms'
     | '/_authenticated/activity'
     | '/_authenticated/dashboard'
@@ -507,11 +543,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  CustomerStoriesRoute: typeof CustomerStoriesRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  IntegrationsRoute: typeof IntegrationsRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SecurityRoute: typeof SecurityRoute
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -561,6 +600,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customer-stories': {
+      id: '/customer-stories'
+      path: '/customer-stories'
+      fullPath: '/customer-stories'
+      preLoaderRoute: typeof CustomerStoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -573,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integrations': {
+      id: '/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof IntegrationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -594,6 +647,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -869,11 +929,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  CustomerStoriesRoute: CustomerStoriesRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  IntegrationsRoute: IntegrationsRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SecurityRoute: SecurityRoute,
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogIndexRoute: BlogIndexRoute,

@@ -100,6 +100,8 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
               <li><Link to="/pricing" className="hover:text-foreground">Pricing</Link></li>
+              <li><Link to="/integrations" className="hover:text-foreground">Integrations</Link></li>
+              <li><Link to="/security" className="hover:text-foreground">Security</Link></li>
               <li><Link to="/auth/signup" className="hover:text-foreground">Create account</Link></li>
             </ul>
           </div>
@@ -107,6 +109,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             <h3 className="text-sm font-semibold">Company</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/about" className="hover:text-foreground">About us</Link></li>
+              <li><Link to="/customer-stories" className="hover:text-foreground">Customer stories</Link></li>
               <li><Link to="/careers" className="hover:text-foreground">Careers</Link></li>
               <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
             </ul>
