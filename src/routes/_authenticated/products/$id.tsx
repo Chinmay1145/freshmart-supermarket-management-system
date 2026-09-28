@@ -188,6 +188,60 @@ function ProductDetailPage() {
           <Button variant={editing ? "outline" : "default"} onClick={() => setEditing((v) => !v)}>
             {editing ? <><X className="mr-2 h-4 w-4" /> Cancel</> : <><Pencil className="mr-2 h-4 w-4" /> Edit</>}
           </Button>
+          <ExportButtons
+            csv={{
+              filename: `${product.sku}-movements.csv`,
+              rows: () =>
+                (movements ?? []).map((m) => ({
+                  when: dateTime(m.created_at),
+                  type: titleCase(m.movement_type),
+                  before: m.previous_qty,
+                  after: m.new_qty,
+                  change: m.difference,
+                  reason: m.reason ?? "",
+                })),
+            }}
+            pdf={() => ({
+              filename: `product-${product.sku}.pdf`,
+              title: "Product Sheet",
+              subtitle: `SKU ${product.sku}`,
+              meta: [
+                { label: "Product", value: product.name },
+                { label: "SKU", value: product.sku },
+                { label: "Category", value: categoryName },
+                { label: "Brand", value: product.brand || "—" },
+                { label: "Barcode", value: product.barcode || "—" },
+                { label: "Location", value: product.location || "—" },
+              ],
+              stats: [
+                { label: "Selling price", value: pdfAmount(product.selling_price) },
+                { label: "Purchase price", value: pdfAmount(product.purchase_price) },
+                { label: "Stock on hand", value: pdfNumber(product.stock), hint: status.label },
+                { label: "Stock value", value: pdfAmount(Number(product.stock) * Number(product.purchase_price)) },
+              ],
+              tables: [
+                {
+                  heading: "Recent stock movements",
+                  head: ["When", "Type", "Before", "After", "Change", "Reason"],
+                  rows: (movements ?? []).map((m) => [
+                    pdfDate(m.created_at),
+                    titleCase(m.movement_type),
+                    pdfNumber(m.previous_qty),
+                    pdfNumber(m.new_qty),
+                    `${Number(m.difference) > 0 ? "+" : ""}${pdfNumber(m.difference)}`,
+                    m.reason ?? "—",
+                  ]),
+                  alignRight: [2, 3, 4],
+                  empty: "No stock movements recorded yet.",
+                },
+              ],
+              totals: [
+                { label: "MRP", value: pdfAmount(product.mrp) },
+                { label: "Margin per unit", value: pdfAmount(margin) },
+                { label: "Stock value", value: pdfAmount(Number(product.stock) * Number(product.purchase_price)), strong: true },
+              ],
+            })}
+          />
         </div>
       </div>
 
