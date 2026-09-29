@@ -17,10 +17,12 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
-        <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2 text-primary">
-            <ShoppingBag className="h-6 w-6" />
+      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto flex h-20 items-center justify-between gap-4 px-4 sm:px-6">
+          <Link to="/" className="flex shrink-0 items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <ShoppingBag className="h-5 w-5" />
+            </div>
             <span className="text-xl font-bold tracking-tight">FreshMart</span>
           </Link>
           <nav aria-label="Main navigation" className="hidden items-center gap-5 lg:flex">
@@ -64,7 +66,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               </SheetContent>
             </Sheet>
           {isAuthenticated ? (
-            <Button asChild>
+            <Button asChild className="rounded-full shadow-glow">
                 <Link to="/dashboard"><span className="hidden sm:inline">Go to </span>Dashboard</Link>
             </Button>
           ) : (
@@ -72,7 +74,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
                 <Button variant="ghost" asChild className="hidden sm:inline-flex">
                 <Link to="/auth">Sign in</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="rounded-full shadow-glow">
                   <Link to="/auth/signup"><span className="hidden sm:inline">Get </span>started</Link>
               </Button>
             </>
