@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import { Menu, ShoppingBag } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
+import { Menu, Moon, ShoppingBag, Sun } from "lucide-react";
 
 const links = [
   { to: "/features", label: "Features" },
