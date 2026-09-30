@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,22 +27,28 @@ type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 const productSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(2, "Name is required"),
-  sku: z.string().min(1, "SKU is required"),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(120),
+  sku: z.string().trim().min(1, "SKU is required").max(40).regex(/^[A-Za-z0-9_-]+$/, "Letters, digits, - or _ only"),
   barcode: z.string().optional(),
   category_id: z.string().optional(),
   brand: z.string().optional(),
   unit: z.string().default("piece"),
-  purchase_price: z.coerce.number().min(0),
-  selling_price: z.coerce.number().min(0),
-  mrp: z.coerce.number().min(0),
-  tax_rate: z.coerce.number().min(0),
-  discount: z.coerce.number().min(0),
-  stock: z.coerce.number().min(0),
-  min_stock: z.coerce.number().min(0),
-  max_stock: z.coerce.number().min(0),
+  purchase_price: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  selling_price: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  mrp: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  tax_rate: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  discount: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  stock: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  min_stock: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
+  max_stock: z.coerce.number({ invalid_type_error: "Enter a number" }).min(0, "Must be 0 or more"),
   location: z.string().default("Main Store"),
   is_active: z.boolean().default(true),
+}).superRefine((v, ctx) => {
+  if (v.mrp > 0 && v.selling_price > v.mrp) ctx.addIssue({ code: "custom", path: ["selling_price"], message: "Selling price can't exceed MRP" });
+  if (v.max_stock < v.min_stock) ctx.addIssue({ code: "custom", path: ["max_stock"], message: "Max stock must be at least min stock" });
+  if (v.tax_rate > 100) ctx.addIssue({ code: "custom", path: ["tax_rate"], message: "Tax rate must be 0-100%" });
+  if (v.discount > 100) ctx.addIssue({ code: "custom", path: ["discount"], message: "Discount must be 0-100%" });
+  if (v.barcode && !/^[0-9A-Za-z-]{4,32}$/.test(v.barcode)) ctx.addIssue({ code: "custom", path: ["barcode"], message: "Use 4-32 letters or digits" });
 });
 
 type ProductForm = z.infer<typeof productSchema>;
@@ -131,8 +139,14 @@ function ProductsPage() {
     setDialogOpen(true);
   };
 
+  const [toDelete, setToDelete] = useState<Product | null>(null);
+  const genSku = () => {
+    const base = (form.getValues("name") || "ITEM").replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "ITEM";
+    form.setValue("sku", `${base}-${Math.floor(1000 + Math.random() * 9000)}`, { shouldValidate: true });
+  };
   const onSubmit = async (values: ProductForm) => {
-    await save.mutateAsync({ ...values, id: editing?.id });
+    const { id: _omit, ...rest } = values;
+    await save.mutateAsync({ ...rest, id: editing?.id });
     setDialogOpen(false);
     setEditing(null);
     form.reset();
@@ -233,7 +247,10 @@ function ProductsPage() {
                 <FormField control={form.control} name="sku" render={({ field }) => (
                   <FormItem>
                     <FormLabel>SKU</FormLabel>
-                    <FormControl><Input placeholder="SALT-001" {...field} /></FormControl>
+                    <div className="flex gap-2">
+                      <FormControl><Input placeholder="SALT-001" {...field} /></FormControl>
+                      <Button type="button" variant="outline" size="sm" onClick={genSku}>Auto</Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -273,49 +290,49 @@ function ProductsPage() {
                 <FormField control={form.control} name="purchase_price" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Purchase price</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="selling_price" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Selling price</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="mrp" render={({ field }) => (
                   <FormItem>
                     <FormLabel>MRP</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="tax_rate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tax rate (%)</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="stock" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Current stock</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="min_stock" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Min stock</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="max_stock" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max stock</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -326,6 +343,23 @@ function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="discount" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Discount (%)</FormLabel>
+                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="is_active" render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3 sm:col-span-2">
+                    <div>
+                      <FormLabel>Active</FormLabel>
+                      <p className="text-xs text-muted-foreground">Inactive products are hidden from billing.</p>
+                    </div>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </FormItem>
+                )} />
+                <MarginHint cost={Number(form.watch("purchase_price")) || 0} sell={Number(form.watch("selling_price")) || 0} />
                 <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving..." : editing ? "Update" : "Create"}</Button>
@@ -397,7 +431,7 @@ function ProductsPage() {
                                 <DropdownMenuItem onClick={() => openEdit(product)}>
                                   <Pencil className="mr-2 h-4 w-4" /> Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive" onClick={() => remove.mutate(product.id)}>
+                                <DropdownMenuItem className="text-destructive" onClick={() => setToDelete(product)}>
                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -413,6 +447,28 @@ function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {toDelete?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>This can't be undone. Products used in past sales can't be deleted, so mark them inactive instead.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (toDelete) remove.mutate(toDelete.id); setToDelete(null); }}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+function MarginHint({ cost, sell }: { cost: number; sell: number }) {
+  const margin = sell > 0 ? ((sell - cost) / sell) * 100 : 0;
+  return (
+    <p className={`sm:col-span-2 text-sm ${margin < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+      Profit per unit: <span className="num font-medium">{inr(sell - cost)}</span> · Margin {margin.toFixed(1)}%
+    </p>
   );
 }
