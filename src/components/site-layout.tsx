@@ -15,6 +15,7 @@ const links = [
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
