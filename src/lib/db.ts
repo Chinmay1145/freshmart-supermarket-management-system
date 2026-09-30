@@ -45,7 +45,16 @@ export function useSaveRow(table: TableName, label = "Record") {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: Row & { id?: string | undefined }) => {
-      const { id, ...rest } = values;
+      const { id, ...raw } = values;
+      // Empty selects/dates can't be stored as "" in id/date columns — send null instead.
+      const rest: Row = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (v === undefined) continue;
+        if (typeof v === "string") {
+          const t = v.trim();
+          rest[k] = t === "" && (k.endsWith("_id") || k.includes("date") || k === "code" || k === "barcode" || k === "email") ? null : t;
+        } else rest[k] = v;
+      }
       const query = id
         ? supabase.from(table).update(rest as never).eq("id", id)
         : supabase.from(table).insert(rest as never);
@@ -96,5 +105,8 @@ export function friendly(message: string) {
   if (m.includes("permission") || m.includes("row-level security"))
     return "You don't have permission to perform this action.";
   if (m.includes("network") || m.includes("fetch")) return "Connection problem. Please try again.";
+  if (m.includes("invalid input syntax") || m.includes("invalid input value")) return "One of the fields has an invalid value. Please check the form.";
+  if (m.includes("null value") && m.includes("violates not-null")) return "Please fill in all required fields.";
+  if (m.includes("check constraint")) return "One of the values is outside the allowed range.";
   return "Something went wrong. Please try again.";
 }
