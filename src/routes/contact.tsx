@@ -131,6 +131,24 @@ function ContactPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mt-10 overflow-hidden shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" /> Find us on the map
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <iframe
+              title="FreshMart office location — 14 MG Road, Pune"
+              src="https://www.google.com/maps?q=MG+Road,+Pune,+Maharashtra+411001&output=embed"
+              className="h-96 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </CardContent>
+        </Card>
       </section>
     </SiteLayout>
   );
