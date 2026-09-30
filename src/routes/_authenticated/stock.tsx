@@ -36,6 +36,7 @@ function StockPage() {
   const [target, setTarget] = useState<Product | null>(null);
   const [newQty, setNewQty] = useState("");
   const [reason, setReason] = useState("");
+  const [mode, setMode] = useState<"add" | "remove" | "set">("add");
   const qc = useQueryClient();
 
   const { data: products, isLoading } = useRows<Product>("products", { orderBy: "name", ascending: true });
@@ -47,7 +48,12 @@ function StockPage() {
     mutationFn: async () => {
       if (!target) return;
       const previous = Number(target.stock);
-      const next = Number(newQty || 0);
+      const entered = Number(newQty);
+      if (newQty.trim() === "" || !Number.isFinite(entered) || entered < 0) throw new Error("Enter a valid quantity (0 or more).");
+      const next = mode === "add" ? previous + entered : mode === "remove" ? previous - entered : entered;
+      if (next < 0) throw new Error(`You can remove at most ${previous} units.`);
+      if (next === previous) throw new Error("Quantity is unchanged.");
+      if (reason.trim().length > 200) throw new Error("Reason is too long (max 200 characters).");
       const { data: userData } = await supabase.auth.getUser();
       const { error: upErr } = await supabase.from("products").update({ stock: next }).eq("id", target.id);
       if (upErr) throw new Error(friendly(upErr.message));
@@ -58,7 +64,7 @@ function StockPage() {
         previous_qty: previous,
         new_qty: next,
         difference: next - previous,
-        reason: reason || "Manual adjustment",
+        reason: reason.trim() || (mode === "add" ? "Stock received" : mode === "remove" ? "Stock removed" : "Manual recount"),
         performed_by: userData.user?.email ?? "system",
       });
       if (movErr) throw new Error(friendly(movErr.message));
@@ -87,7 +93,8 @@ function StockPage() {
 
   const openAdjust = (p: Product) => {
     setTarget(p);
-    setNewQty(String(Number(p.stock)));
+    setMode("add");
+    setNewQty("");
     setReason("");
   };
 
@@ -339,13 +346,34 @@ function StockPage() {
             <p className="text-sm text-muted-foreground">
               Current quantity: <span className="num font-medium text-foreground">{num(target?.stock ?? 0, 2)}</span>
             </p>
+            <Tabs value={mode} onValueChange={(v) => { setMode(v as typeof mode); setNewQty(v === "set" ? String(Number(target?.stock ?? 0)) : ""); }}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="add">Add stock</TabsTrigger>
+                <TabsTrigger value="remove">Remove</TabsTrigger>
+                <TabsTrigger value="set">Set exact</TabsTrigger>
+              </TabsList>
+            </Tabs>
             <div className="space-y-2">
-              <label className="text-sm font-medium">New quantity</label>
-              <Input type="number" step="0.01" min="0" value={newQty} onChange={(e) => setNewQty(e.target.value)} />
+              <label htmlFor="adj-qty" className="text-sm font-medium">
+                {mode === "add" ? "Quantity to add" : mode === "remove" ? "Quantity to remove" : "New quantity"}
+              </label>
+              <Input id="adj-qty" type="number" step="0.01" min="0" autoFocus value={newQty} onChange={(e) => setNewQty(e.target.value)} onKeyDown={(e) => e.key === "Enter" && adjust.mutate()} />
+              {(() => {
+                const cur = Number(target?.stock ?? 0), q = Number(newQty);
+                if (newQty.trim() === "" || !Number.isFinite(q)) return null;
+                const next = mode === "add" ? cur + q : mode === "remove" ? cur - q : q;
+                return (
+                  <p className={`text-xs ${next < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                    New stock will be <span className="num font-medium">{num(next, 2)}</span> {target?.unit}
+                    {next < 0 ? " (not allowed)" : ""}
+                  </p>
+                );
+              })()}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Reason</label>
               <Input
+                maxLength={200}
                 placeholder="Damaged goods, recount, delivery..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
