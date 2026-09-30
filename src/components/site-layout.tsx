@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import { Menu, ShoppingBag } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
+import { Menu, Moon, ShoppingBag, Sun } from "lucide-react";
 
 const links = [
   { to: "/features", label: "Features" },
@@ -14,6 +15,7 @@ const links = [
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -38,6 +40,14 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggle}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation">
