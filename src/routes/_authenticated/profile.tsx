@@ -37,7 +37,7 @@ function ProfilePage() {
     if (!fullName.trim()) e["fullName"] = "Full name is required.";
     else if (fullName.trim().length > 100) e["fullName"] = "Name must be under 100 characters.";
     if (phone.trim() && !/^\+?[\d\s()-]{7,15}$/.test(phone.trim()))
-      e.phone = "Enter a valid phone number (7–15 digits).";
+      e["phone"] = "Enter a valid phone number (7–15 digits).";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
