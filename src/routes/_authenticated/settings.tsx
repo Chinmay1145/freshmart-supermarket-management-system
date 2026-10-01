@@ -50,19 +50,19 @@ function SettingsPage() {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.store_name.trim()) e.store_name = "Store name is required.";
-    else if (form.store_name.trim().length > 100) e.store_name = "Store name must be under 100 characters.";
+    if (!form.store_name.trim()) e["store_name"] = "Store name is required.";
+    else if (form.store_name.trim().length > 100) e["store_name"] = "Store name must be under 100 characters.";
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-      e.email = "Enter a valid email address.";
+      e["email"] = "Enter a valid email address.";
     if (form.phone.trim() && !/^\+?[\d\s()-]{7,15}$/.test(form.phone.trim()))
-      e.phone = "Enter a valid phone number (7–15 digits).";
+      e["phone"] = "Enter a valid phone number (7–15 digits).";
     if (form.gst_number.trim() && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(form.gst_number.trim().toUpperCase()))
-      e.gst_number = "Enter a valid 15-character GSTIN (e.g. 27AABCF1234M1ZP).";
+      e["gst_number"] = "Enter a valid 15-character GSTIN (e.g. 27AABCF1234M1ZP).";
     const tax = Number(form.default_tax);
-    if (isNaN(tax) || tax < 0 || tax > 28) e.default_tax = "Tax must be between 0% and 28%.";
-    if (!form.invoice_prefix.trim()) e.invoice_prefix = "Invoice prefix is required.";
+    if (isNaN(tax) || tax < 0 || tax > 28) e["default_tax"] = "Tax must be between 0% and 28%.";
+    if (!form.invoice_prefix.trim()) e["invoice_prefix"] = "Invoice prefix is required.";
     else if (!/^[A-Za-z0-9-]{1,10}$/.test(form.invoice_prefix.trim()))
-      e.invoice_prefix = "Use up to 10 letters, numbers or dashes only.";
+      e["invoice_prefix"] = "Use up to 10 letters, numbers or dashes only.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };

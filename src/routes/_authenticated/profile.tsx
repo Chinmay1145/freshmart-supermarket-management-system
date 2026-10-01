@@ -34,8 +34,8 @@ function ProfilePage() {
 
   const validateProfile = () => {
     const e: Record<string, string> = {};
-    if (!fullName.trim()) e.fullName = "Full name is required.";
-    else if (fullName.trim().length > 100) e.fullName = "Name must be under 100 characters.";
+    if (!fullName.trim()) e["fullName"] = "Full name is required.";
+    else if (fullName.trim().length > 100) e["fullName"] = "Name must be under 100 characters.";
     if (phone.trim() && !/^\+?[\d\s()-]{7,15}$/.test(phone.trim()))
       e.phone = "Enter a valid phone number (7–15 digits).";
     setErrors(e);
@@ -44,10 +44,10 @@ function ProfilePage() {
 
   const validatePassword = () => {
     const e: Record<string, string> = {};
-    if (pw.password.length < 8) e.password = "Password must be at least 8 characters.";
+    if (pw.password.length < 8) e["password"] = "Password must be at least 8 characters.";
     else if (!/[A-Z]/.test(pw.password) || !/[a-z]/.test(pw.password) || !/\d/.test(pw.password))
-      e.password = "Use upper & lower case letters and a number.";
-    if (pw.confirm !== pw.password) e.confirm = "Passwords do not match.";
+      e["password"] = "Use upper & lower case letters and a number.";
+    if (pw.confirm !== pw.password) e["confirm"] = "Passwords do not match.";
     setPwErrors(e);
     return Object.keys(e).length === 0;
   };
