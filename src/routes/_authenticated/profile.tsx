@@ -127,9 +127,9 @@ function ProfilePage() {
                   onChange={(e) => { setFullName(e.target.value); setErrors((p) => ({ ...p, fullName: "" })); }}
                   placeholder="Your name"
                   maxLength={100}
-                  className={errors.fullName ? "border-destructive" : ""}
+                  className={errors["fullName"] ? "border-destructive" : ""}
                 />
-                {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+                {errors["fullName"] && <p className="text-xs text-destructive">{errors["fullName"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone</label>
@@ -138,9 +138,9 @@ function ProfilePage() {
                   onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: "" })); }}
                   placeholder="+91 98765 43210"
                   maxLength={16}
-                  className={errors.phone ? "border-destructive" : ""}
+                  className={errors["phone"] ? "border-destructive" : ""}
                 />
-                {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                {errors["phone"] && <p className="text-xs text-destructive">{errors["phone"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
@@ -177,9 +177,9 @@ function ProfilePage() {
                   minLength={8}
                   value={pw.password}
                   onChange={(e) => { setPw({ ...pw, password: e.target.value }); setPwErrors((p) => ({ ...p, password: "" })); }}
-                  className={pwErrors.password ? "border-destructive" : ""}
+                  className={pwErrors["password"] ? "border-destructive" : ""}
                 />
-                {pwErrors.password && <p className="text-xs text-destructive">{pwErrors.password}</p>}
+                {pwErrors["password"] && <p className="text-xs text-destructive">{pwErrors["password"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Confirm password</label>
@@ -189,9 +189,9 @@ function ProfilePage() {
                   minLength={8}
                   value={pw.confirm}
                   onChange={(e) => { setPw({ ...pw, confirm: e.target.value }); setPwErrors((p) => ({ ...p, confirm: "" })); }}
-                  className={pwErrors.confirm ? "border-destructive" : ""}
+                  className={pwErrors["confirm"] ? "border-destructive" : ""}
                 />
-                {pwErrors.confirm && <p className="text-xs text-destructive">{pwErrors.confirm}</p>}
+                {pwErrors["confirm"] && <p className="text-xs text-destructive">{pwErrors["confirm"]}</p>}
               </div>
             </div>
             <Separator />

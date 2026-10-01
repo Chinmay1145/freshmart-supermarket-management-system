@@ -138,9 +138,9 @@ function SettingsPage() {
                 value={form.store_name}
                 maxLength={100}
                 onChange={(e) => { setForm({ ...form, store_name: e.target.value }); setErrors((p) => ({ ...p, store_name: "" })); }}
-                className={errors.store_name ? "border-destructive" : ""}
+                className={errors["store_name"] ? "border-destructive" : ""}
               />
-              {errors.store_name && <p className="text-xs text-destructive">{errors.store_name}</p>}
+              {errors["store_name"] && <p className="text-xs text-destructive">{errors["store_name"]}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">GST number</label>
@@ -149,9 +149,9 @@ function SettingsPage() {
                 maxLength={15}
                 placeholder="27AABCF1234M1ZP"
                 onChange={(e) => { setForm({ ...form, gst_number: e.target.value.toUpperCase() }); setErrors((p) => ({ ...p, gst_number: "" })); }}
-                className={errors.gst_number ? "border-destructive" : ""}
+                className={errors["gst_number"] ? "border-destructive" : ""}
               />
-              {errors.gst_number && <p className="text-xs text-destructive">{errors.gst_number}</p>}
+              {errors["gst_number"] && <p className="text-xs text-destructive">{errors["gst_number"]}</p>}
             </div>
             <div className="space-y-2 sm:col-span-2">
               <label className="text-sm font-medium">Address</label>
@@ -163,9 +163,9 @@ function SettingsPage() {
                 value={form.phone}
                 maxLength={16}
                 onChange={(e) => { setForm({ ...form, phone: e.target.value }); setErrors((p) => ({ ...p, phone: "" })); }}
-                className={errors.phone ? "border-destructive" : ""}
+                className={errors["phone"] ? "border-destructive" : ""}
               />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              {errors["phone"] && <p className="text-xs text-destructive">{errors["phone"]}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
@@ -173,9 +173,9 @@ function SettingsPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors((p) => ({ ...p, email: "" })); }}
-                className={errors.email ? "border-destructive" : ""}
+                className={errors["email"] ? "border-destructive" : ""}
               />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Default tax (%)</label>
@@ -186,9 +186,9 @@ function SettingsPage() {
                 max="28"
                 value={form.default_tax}
                 onChange={(e) => { setForm({ ...form, default_tax: Number(e.target.value) }); setErrors((p) => ({ ...p, default_tax: "" })); }}
-                className={errors.default_tax ? "border-destructive" : ""}
+                className={errors["default_tax"] ? "border-destructive" : ""}
               />
-              {errors.default_tax && <p className="text-xs text-destructive">{errors.default_tax}</p>}
+              {errors["default_tax"] && <p className="text-xs text-destructive">{errors["default_tax"]}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Invoice prefix <span className="text-destructive">*</span></label>
@@ -196,9 +196,9 @@ function SettingsPage() {
                 value={form.invoice_prefix}
                 maxLength={10}
                 onChange={(e) => { setForm({ ...form, invoice_prefix: e.target.value.toUpperCase() }); setErrors((p) => ({ ...p, invoice_prefix: "" })); }}
-                className={errors.invoice_prefix ? "border-destructive" : ""}
+                className={errors["invoice_prefix"] ? "border-destructive" : ""}
               />
-              {errors.invoice_prefix && <p className="text-xs text-destructive">{errors.invoice_prefix}</p>}
+              {errors["invoice_prefix"] && <p className="text-xs text-destructive">{errors["invoice_prefix"]}</p>}
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3 sm:col-span-2">
               <div>
