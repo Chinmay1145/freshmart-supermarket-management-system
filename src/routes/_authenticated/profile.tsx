@@ -29,6 +29,28 @@ function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [pw, setPw] = useState({ password: "", confirm: "" });
   const [changingPw, setChangingPw] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [pwErrors, setPwErrors] = useState<Record<string, string>>({});
+
+  const validateProfile = () => {
+    const e: Record<string, string> = {};
+    if (!fullName.trim()) e["fullName"] = "Full name is required.";
+    else if (fullName.trim().length > 100) e["fullName"] = "Name must be under 100 characters.";
+    if (phone.trim() && !/^\+?[\d\s()-]{7,15}$/.test(phone.trim()))
+      e["phone"] = "Enter a valid phone number (7–15 digits).";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validatePassword = () => {
+    const e: Record<string, string> = {};
+    if (pw.password.length < 8) e["password"] = "Password must be at least 8 characters.";
+    else if (!/[A-Z]/.test(pw.password) || !/[a-z]/.test(pw.password) || !/\d/.test(pw.password))
+      e["password"] = "Use upper & lower case letters and a number.";
+    if (pw.confirm !== pw.password) e["confirm"] = "Passwords do not match.";
+    setPwErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -50,6 +72,7 @@ function ProfilePage() {
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!validateProfile()) return;
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -61,14 +84,7 @@ function ProfilePage() {
 
   const changePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pw.password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
-      return;
-    }
-    if (pw.password !== pw.confirm) {
-      toast.error("Passwords do not match.");
-      return;
-    }
+    if (!validatePassword()) return;
     setChangingPw(true);
     const { error } = await supabase.auth.updateUser({ password: pw.password });
     setChangingPw(false);
@@ -105,12 +121,26 @@ function ProfilePage() {
           ) : (
             <form onSubmit={saveProfile} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Full name</label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your name" />
+                <label className="text-sm font-medium">Full name <span className="text-destructive">*</span></label>
+                <Input
+                  value={fullName}
+                  onChange={(e) => { setFullName(e.target.value); setErrors((p) => ({ ...p, fullName: "" })); }}
+                  placeholder="Your name"
+                  maxLength={100}
+                  className={errors["fullName"] ? "border-destructive" : ""}
+                />
+                {errors["fullName"] && <p className="text-xs text-destructive">{errors["fullName"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone</label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+                <Input
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: "" })); }}
+                  placeholder="+91 98765 43210"
+                  maxLength={16}
+                  className={errors["phone"] ? "border-destructive" : ""}
+                />
+                {errors["phone"] && <p className="text-xs text-destructive">{errors["phone"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
@@ -144,20 +174,24 @@ function ProfilePage() {
                 <Input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={pw.password}
-                  onChange={(e) => setPw({ ...pw, password: e.target.value })}
+                  onChange={(e) => { setPw({ ...pw, password: e.target.value }); setPwErrors((p) => ({ ...p, password: "" })); }}
+                  className={pwErrors["password"] ? "border-destructive" : ""}
                 />
+                {pwErrors["password"] && <p className="text-xs text-destructive">{pwErrors["password"]}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Confirm password</label>
                 <Input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={pw.confirm}
-                  onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
+                  onChange={(e) => { setPw({ ...pw, confirm: e.target.value }); setPwErrors((p) => ({ ...p, confirm: "" })); }}
+                  className={pwErrors["confirm"] ? "border-destructive" : ""}
                 />
+                {pwErrors["confirm"] && <p className="text-xs text-destructive">{pwErrors["confirm"]}</p>}
               </div>
             </div>
             <Separator />
