@@ -41,7 +41,7 @@ function StockPage() {
 
   const { data: products, isLoading } = useRows<Product>("products", { orderBy: "name", ascending: true });
   const { data: movements } = useRows<Movement>("inventory_movements", { limit: 100 });
-  const { data: settingsRows } = useRows<Settings>("store_settings", { limit: 1 });
+  const { data: settingsRows } = useRows<Settings>("store_settings", { orderBy: "updated_at", limit: 1 });
   const storeName = settingsRows?.[0]?.store_name ?? "FreshMart ERP";
 
   const adjust = useMutation({

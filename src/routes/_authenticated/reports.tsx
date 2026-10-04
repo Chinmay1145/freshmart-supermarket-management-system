@@ -57,7 +57,7 @@ function ReportsPage() {
   const { data: saleItems, isLoading: itemsLoading } = useRows<SaleItem>("sale_items", { orderBy: "id", limit: 5000 });
   const { data: expenses } = useRows<Expense>("expenses", { orderBy: "expense_date", ascending: false, limit: 1000 });
   const { data: products } = useRows<Product>("products", { limit: 1000 });
-  const { data: settingsRows } = useRows<Settings>("store_settings", { limit: 1 });
+  const { data: settingsRows } = useRows<Settings>("store_settings", { orderBy: "updated_at", limit: 1 });
   const storeName = settingsRows?.[0]?.store_name ?? "FreshMart ERP";
 
   const from = useMemo(() => {
