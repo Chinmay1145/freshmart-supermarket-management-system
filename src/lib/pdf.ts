@@ -309,6 +309,19 @@ export function buildPdf(spec: PdfDocSpec) {
   return doc;
 }
 
-export function downloadPdf(spec: PdfDocSpec) {
+/** Saves the PDF straight to disk (used by the preview dialog's Download button). */
+export function savePdf(spec: PdfDocSpec) {
   buildPdf(spec).save(spec.filename);
+}
+
+export const PDF_PREVIEW_EVENT = "freshmart:pdf-preview";
+
+/**
+ * Opens the PDF preview dialog so store details and layout can be checked
+ * before saving. Falls back to a direct download if no preview host is mounted.
+ */
+export function downloadPdf(spec: PdfDocSpec) {
+  if (typeof window === "undefined") return;
+  const handled = !window.dispatchEvent(new CustomEvent(PDF_PREVIEW_EVENT, { detail: spec, cancelable: true }));
+  if (!handled) savePdf(spec);
 }
