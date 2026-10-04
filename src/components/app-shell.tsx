@@ -35,13 +35,16 @@ import {
   IdCard,
   Bell,
   History,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PdfPreviewHost } from "@/components/pdf-preview";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/products", label: "Products", icon: Package },
   { to: "/stock", label: "Stock", icon: Boxes },
+  { to: "/restock", label: "AI Restock", icon: Sparkles },
   { to: "/categories", label: "Categories", icon: Tags },
   { to: "/sales", label: "Sales", icon: Receipt },
   { to: "/purchases", label: "Purchases", icon: ShoppingCart },
@@ -185,6 +188,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </DropdownMenu>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <PdfPreviewHost />
       </div>
     </div>
   );
