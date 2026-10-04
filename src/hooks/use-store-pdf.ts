@@ -8,7 +8,7 @@ type Settings = Database["public"]["Tables"]["store_settings"]["Row"];
  * lines printed under it in the document header.
  */
 export function useStorePdf() {
-  const { data } = useRows<Settings>("store_settings", { limit: 1 });
+  const { data } = useRows<Settings>("store_settings", { orderBy: "updated_at", limit: 1 });
   const s = data?.[0];
   const storeName = s?.store_name?.trim() || "FreshMart ERP";
   const storeMeta = [
