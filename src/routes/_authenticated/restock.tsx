@@ -96,7 +96,7 @@ function RestockPage() {
     storeName, storeMeta,
     notes: plan.summary,
     tables: [{
-      title: "Recommendations",
+      heading: "Recommendations",
       head: ["Product", "Priority", "Order qty", "Days left", "Reason"],
       rows: plan.recommendations.map((r) => [r.product, r.priority.toUpperCase(), pdfNumber(r.suggested_quantity, 0),
         r.days_of_stock_left === null ? "—" : pdfNumber(r.days_of_stock_left, 1), r.reason]),
