@@ -38,11 +38,31 @@ function NotFoundComponent() {
   );
 }
 
+function retryAfterChunkLoadFailure(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (!/failed to fetch dynamically imported module|loading chunk|import\(\) failed|module script failed/i.test(message)) return;
+
+  try {
+    const key = `freshmart:chunk-retry:${window.location.pathname}`;
+    const now = Date.now();
+    const previousAttempt = Number(window.sessionStorage.getItem(key) ?? 0);
+    if (previousAttempt && now - previousAttempt < 60_000) return;
+
+    window.sessionStorage.setItem(key, String(now));
+    const freshUrl = new URL(window.location.href);
+    freshUrl.searchParams.set("__chunk_retry", String(now));
+    window.location.replace(freshUrl.toString());
+  } catch {
+    // Keep the error screen available when browser storage is disabled.
+  }
+}
+
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    retryAfterChunkLoadFailure(error);
   }, [error]);
 
   return (
