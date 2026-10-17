@@ -94,14 +94,14 @@ function RestockPage() {
     title: "AI Restock Plan",
     subtitle: `Based on the last ${period} days of sales`,
     storeName, storeMeta,
-    notes: plan.summary,
+    notes: [plan.summary],
     tables: [{
       heading: "Recommendations",
       head: ["Product", "Priority", "Order qty", "Days left", "Reason"],
       rows: plan.recommendations.map((r) => [r.product, r.priority.toUpperCase(), pdfNumber(r.suggested_quantity, 0),
         r.days_of_stock_left === null ? "—" : pdfNumber(r.days_of_stock_left, 1), r.reason]),
     }],
-  } as Parameters<typeof downloadPdf>[0]);
+  });
 
   return (
     <div className="space-y-4">
